@@ -1,20 +1,31 @@
 # Task / Project Domain
 
-Sistema de dominio para gestionar tareas y proyectos
-siguiendo principios de arquitectura limpia y DDD-lite.
+Este repositorio contiene el modelo de dominio de un sistema
+de gestión de tareas, proyectos y métricas de progreso.
 
-## Decisiones clave
+## Objetivo
 
-- El dominio no depende de frameworks
-- El progreso es un estado derivado
-- Un proyecto puede cerrarse sin eliminarse
+Diseñar y validar el dominio antes de introducir:
+- casos de uso
+- persistencia
+- API
+- frameworks
+
+## Decisiones de dominio (cerradas)
+
+- Task, Project y Meta son conceptos distintos (no herencia)
+- El progreso es un estado derivado, no persistido
+- Un proyecto puede cerrarse y reabrirse
+- Un proyecto cerrado no permite modificaciones
 - Las tareas pueden existir sin proyecto
-- El dominio se valida mediante tests
+- Remover una tarea de un proyecto no elimina la tarea
 
-## Estructura
+## Tests
 
-- domain/ → entidades y reglas
-- tests/ → invariantes del dominio
+Los invariantes del dominio se validan mediante tests
+ubicados junto a las entidades dentro de `src/domain`.
 
 ## Estado actual
-Fase 4: Dominio y estados derivados completos
+
+Fase 4 completada: dominio estable y validado.
+Casos de uso aún no implementados.
