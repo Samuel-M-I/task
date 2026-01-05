@@ -55,6 +55,17 @@ export class Project{
         }
         this.tasks.push(task);
     }
+    removeTask(taskId:string):void{
+        if(this.closed){
+            throw new Error('Cannot rename tasks in a closed project');
+        }
+        const indice = this.tasks.findIndex(t => t.id === taskId);
+        if (indice === -1){
+            throw new Error('Task not found in project')
+        }
+        this.tasks.splice(indice,1);
+    }
+
     renameTask(taskId:string, newName:string):void{
         if(this.closed){
             throw new Error('Cannot rename tasks in a closed project');
