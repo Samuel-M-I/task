@@ -1,116 +1,77 @@
 import { Project } from './Project';
-import { Task } from '../task/Task';
-//Project.test.ts
-describe('Project domain invariants', () => {
-    //Creacion  del projecto
-    test('cannot create a Project with empty name', () => {
-        expect(() => Project.create('')).toThrow();
+
+describe('Project domain', () => {
+
+  // 🧪 Test 1 — creación válida
+    test('cannot create a project without a name', () => {
+        expect(() => {
+            Project.create('');
+        }).toThrow();
     });
 
+  // 🧪 Test 2 — agregar taskId
+    test('open project can add a taskId', () => {
+        const project = Project.create('My Project');
+        const taskId = 'task-1';
 
-    //Edicion del projecto
-    test('a Project name can be changed explicitly', () => {
-        const project = Project.create('Ir al gimnacio');
-        project.rename('Ir al gimnasio');
-        expect(project.name).toBe('Ir al gimnasio');
+        project.addTask(taskId);
+
+        expect(project.getTaskIds).toContain(taskId);
     });
 
-    //Estado del projecto
+  // 🧪 Test 3 — evitar duplicados
+    test('cannot add the same taskId twice', () => {
+        const project = Project.create('My Project');
+        const taskId = 'task-1';
 
-    test('a project is not complete if it has no tasks', () => {
-        const project = Project.create('Proyecto vacío');
-        expect(project.isComplete()).toBe(false);
+        project.addTask(taskId);
+
+        expect(() => {
+            project.addTask(taskId);
+        }).toThrow();
     });
 
-    test('a project becomes complete when all tasks are completed', () => {
-        const project = Project.create('Proyecto 1');
-        const task = Task.create('Tarea 1');
+  // 🧪 Test 4 — remover taskId
+    test('can remove an existing taskId', () => {
+        const project = Project.create('My Project');
+        const taskId = 'task-1';
 
-        project.addTask(task);
-        project.completeTask(task.id);
+        project.addTask(taskId);
+        project.removeTask(taskId);
 
-        expect(project.isComplete()).toBe(true);
-    });
-    test('project progress is null when it has no tasks', () => {
-        const project = Project.create('Proyecto vacío');
-        expect(project.getProgress()).toBeNull();
-    });
-        test('project progress is 0 when it has tasks but none completed', () => {
-        const project = Project.create('Proyecto');
-        project.addTask(Task.create('T1'));
-        project.addTask(Task.create('T2'));
-
-        expect(project.getProgress()).toBe(0);
+        expect(project.getTaskIds).not.toContain(taskId);
     });
 
-    test('project progress reflects completed tasks ratio', () => {
-    const project = Project.create('Proyecto');
-    const t1 = Task.create('T1');
-    const t2 = Task.create('T2');
+  // 🧪 Test 5 — error al remover inexistente
+    test('throws error when removing a taskId that does not belong to project', () => {
+        const project = Project.create('My Project');
 
-    project.addTask(t1);
-    project.addTask(t2);
-    project.completeTask(t1.id);
-    
-    expect(project.getProgress()).toBe(0.5);
+        expect(() => {
+        project.removeTask('non-existent-task');
+        }).toThrow();
     });
 
-    test('project progress is 1 when all tasks are completed', () => {
-        const project = Project.create('Proyecto');
-        const t1 = Task.create('T1');
-
-        project.addTask(t1);
-        project.completeTask(t1.id);
-
-        expect(project.getProgress()).toBe(1);
-    });
-    
-    //Consideraciones cuando el projecto esta cerrado
-    test('a closed project does not accept new tasks', () => {
-        const project = Project.create('Proyecto cerrado');
+  // 🧪 Test 6a — proyecto cerrado no permite addTask
+    test('closed project does not allow adding tasks', () => {
+        const project = Project.create('My Project');
         project.close();
 
-        expect(() => project.addTask(Task.create('Nueva tarea'))).toThrow();
-    });
-    test('cannot rename project when closed', () => {
-    const project = Project.create('Proyecto');
-    project.close();
-
-    expect(() => project.rename('Nuevo nombre')).toThrow();
+        expect(() => {
+        project.addTask('task-1');
+        }).toThrow();
     });
 
-    test('cannot complete a task when project is closed', () => {
-        const project = Project.create('Proyecto');
-        const task = Task.create('Tarea');
+  // 🧪 Test 6b — proyecto cerrado no permite removeTask
+    test('closed project does not allow removing tasks', () => {
+        const project = Project.create('My Project');
+        const taskId = 'task-1';
 
-        project.addTask(task);
+        project.addTask(taskId);
         project.close();
 
-        expect(() => project.completeTask(task.id)).toThrow();
-    });
-
-    test('cannot remove a task when project is closed', () => {
-        const project = Project.create('Proyecto');
-        const task = Task.create('Tarea');
-
-        project.addTask(task);
-        project.close();
-
-        expect(() => project.removeTask(task.id)).toThrow();
-    });
-
-    //Cuando no encuentra la tarea
-    test('renaming a non-existent task throws an error', () => {
-        const project = Project.create('Proyecto');
-        expect(() => project.renameTask('non-existent-id', 'Nuevo nombre')).toThrow();
-    });
-    test('completing a non-existent task throws an error', () => {
-        const project = Project.create('Proyecto');
-        expect(() => project.completeTask('non-existent-id')).toThrow();
-    });
-    test('removing a non-existent task throws an error', () => {
-        const project = Project.create('Proyecto');
-        expect(() => project.removeTask('non-existent-id')).toThrow();
+        expect(() => {
+        project.removeTask(taskId);
+        }).toThrow();
     });
 
 });

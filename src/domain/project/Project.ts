@@ -1,90 +1,75 @@
 import { randomUUID } from 'crypto';
-import {Task} from '../task/Task';
-
+import {
+    ProjectClosedError,
+    TaskAlreadyInProjectError,
+    TaskNotInProjectError,
+    InvalidProjectNameError
+} from './ProjectsErrors';
 export class Project{
-    readonly _id:string;
-    name:string;
-    private tasks: Task[]=[];
-    private closed: boolean = false;
-    constructor(id:string, name:string){
-        this.name = name;
+    private readonly   _id:string;
+    private _name:string;
+    private _tasksIds: string[]=[];
+    private _isclosed: boolean = false;
+    private constructor(id:string, _name:string){
+        this._name = _name;
         this._id = id;   
     }
-    static create(name:string):Project{
-        if (!name || name.trim() === ''){    
-            throw new Error('Project name cannot be empty');
+    static create(_name:string):Project{
+        if (!_name || _name.trim() === ''){    
+            throw new InvalidProjectNameError;
         }
-        return new Project(randomUUID(),name);
+        return new Project(randomUUID(),_name);
     }
 
     //getters
-    isComplete():boolean{
-        if(this.tasks.length ===0){ return false; }
-        return this.tasks.every(task => task.state === 'completada');
-    }
     get id():string{
         return this._id;
     }
-
-    getProgress():number|null{
-        if(this.tasks.length ===0){ return null; }
-        return this.tasks.filter(t=>t.state==='completada').length / this.tasks.length;
-
+    get name():string{
+        return this._name;
+    }
+    get getTaskIds():ReadonlyArray<string>{
+        return Array.from(this._tasksIds);
     }
     //edicion del Project
     rename(newName:string):void{
-        if (this.closed){
-            throw new Error('Cannot rename a closed project');
+        if (this._isclosed){
+            throw new ProjectClosedError;
         }
         if (!newName || newName.trim() === ''){
-            throw new Error('Project name cannot be empty');
+            throw new InvalidProjectNameError;
         }
-        this.name = newName;
+        this._name = newName;
     }
     close():void{
-        this.closed = true;
+        this._isclosed = true;
     }
     reopen():void{
-        this.closed = false;
+        this._isclosed = false;
     }
 
     //task management
-    addTask(task:Task):void{
-        if(this.closed){
-            throw new Error('Cannot add tasks to a closed project');
+    searchTask(taskId:string):boolean{
+        return this._tasksIds.includes(taskId);
+    }
+    addTask(taskId:string):void{
+        if(this._isclosed){
+            throw new ProjectClosedError;
+        } else if(this._tasksIds.includes(taskId)){
+            throw new TaskAlreadyInProjectError;
         }
-        this.tasks.push(task);
+        this._tasksIds.push(taskId);
     }
     removeTask(taskId:string):void{
-        if(this.closed){
-            throw new Error('Cannot rename tasks in a closed project');
+        if(this._isclosed){
+            throw new ProjectClosedError;
         }
-        const indice = this.tasks.findIndex(t => t.id === taskId);
+        const indice = this._tasksIds.findIndex(t => t === taskId);
         if (indice === -1){
-            throw new Error('Task not found in project')
+            throw new TaskNotInProjectError;
         }
-        this.tasks.splice(indice,1);
+        this._tasksIds.splice(indice,1);
     }
 
-    renameTask(taskId:string, newName:string):void{
-        if(this.closed){
-            throw new Error('Cannot rename tasks in a closed project');
-        }
-        const task = this.tasks.find(t => t.id === taskId);
-        if(!task){
-            throw new Error('Task not found in project');
-        }
-        task.rename(newName);
-    }
-    completeTask(taskId:string):void{
-        if(this.closed){
-            throw new Error('Cannot complete tasks in a closed project');
-        }
-        const task = this.tasks.find(t => t.id === taskId);
-        if(!task){
-            throw new Error('Task not found in project');
-        }
-        task.complete();
-    }
 
 }

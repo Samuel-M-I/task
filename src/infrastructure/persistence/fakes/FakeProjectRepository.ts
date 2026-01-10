@@ -1,5 +1,5 @@
-import { Project } from '../../domain/project/Project';
-import { ProjectRepository } from '../ports/ProjectRepository';
+import { Project } from '../../../domain/project/Project';
+import { ProjectRepository } from '../../../application/ports/ProjectRepository';
 
 export class FakeProjectRepository implements ProjectRepository {
     private projects = new Map<string, Project>();
